@@ -136,12 +136,12 @@ def main():
                     except yaml.YAMLError as e:
                         print(f"  Error parsing metadata.yaml for {video_slug}: {e}")
                         video_data['title'] = video_slug.replace("_", " ").title()
-                        video_data['youtube_video_id'] = None # Changed from youtube_url
+                        video_data['youtube_video_id'] = None
                         video_data['description'] = ''
                 else:
                     print(f"  Warning: metadata.yaml not found for {video_slug}. Using defaults.")
                     video_data['title'] = video_slug.replace("_", " ").title()
-                    video_data['youtube_video_id'] = None # Changed from youtube_url
+                    video_data['youtube_video_id'] = None
                     video_data['description'] = ''
 
                 video_data['transcript'] = read_file_content(os.path.join(video_content_path, "transcript.txt"), default='').strip()
