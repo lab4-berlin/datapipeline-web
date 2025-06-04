@@ -1,0 +1,52 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch, e.g., master
+    paths:
+      - 'content/**'
+      - 'templates/**'
+      - 'generate_site.py'
+      - '.github/workflows/deploy-gh-pages.yml' # Re-run if workflow itself changes
+
+permissions:
+  contents: read    # To checkout the repository
+  pages: write      # To deploy to GitHub Pages
+  id-token: write   # To authenticate with GitHub Pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # To show the deployed URL in the Actions tab
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Or your preferred Python version
+          cache: 'pip' # Cache pip dependencies
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML # Add any other dependencies your script might have
+
+      - name: Run site generator
+        run: python generate_site.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './html' # The folder where your generate_site.py outputs HTML
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
