@@ -95,7 +95,8 @@ def generate_index_html(videos_data):
             </a>
         </li>"""
     
-    video_list_html = f'<ul class="video-list">\n{video_list_items if video_list_items else "<p>No videos found. Add content to the \'content\' folder.</p>"}\n</ul>'
+    list_content_for_f_string = video_list_items if video_list_items else "<p>No videos found. Add content to the 'content' folder.</p>"
+    video_list_html = f'<ul class="video-list">\n{list_content_for_f_string}\n</ul>'
 
     html_content = template_content.replace("{SITE_TITLE}", SITE_TITLE)
     html_content = html_content.replace("{VIDEO_LIST_HTML}", video_list_html)
@@ -188,6 +189,29 @@ def main():
         print(f"Warning: style.css not found at {source_css_path}")
 
     print(f"Website generation complete! Files are in '{OUTPUT_DIR}' directory.")
+
+def generate_video_list_page(videos):
+    video_list_items = ""
+    if videos:
+        for video in videos:
+            # Make sure the path is relative to the HTML file's location
+            relative_video_path = os.path.join('..', video['path'])
+            video_list_items += f'<li><a href="{relative_video_path}" target="_blank">{video["title"]}</a></li>\n'
+    
+    # Pre-calculate the content for the list
+    if video_list_items:
+        list_content = video_list_items
+    else:
+        list_content = "<p>No videos found. Add content to the 'content' folder.</p>"
+
+    video_list_html = f'<ul class="video-list">\n{list_content}\n</ul>'
+    
+    # Ensure the 'html' directory exists
+    os.makedirs("html", exist_ok=True)
+    
+    with open(os.path.join("html", "video_list.html"), "w") as f:
+        f.write(video_list_html)
+    print("Generated video_list.html")
 
 if __name__ == "__main__":
     main()
