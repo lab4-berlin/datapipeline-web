@@ -76,7 +76,7 @@ def generate_video_html(video_data):
     return html_content
 
 def generate_index_html(videos_data):
-    """Generates the main index.html page using a template."""
+    """Generates the main index.html page using a template, with videos grouped by category."""
     template_path = os.path.join(TEMPLATES_DIR, "index_template.html")
     if not os.path.exists(template_path):
         print(f"Error: Index template not found at {template_path}")
@@ -84,22 +84,48 @@ def generate_index_html(videos_data):
         
     template_content = read_file_content(template_path)
     
-    video_list_items = ""
-    for video in sorted(videos_data, key=lambda x: x['slug']):
-        thumbnail_html = f'<img src="{video["thumbnail_path_relative"]}" alt="{video["title"]} Thumbnail" class="thumbnail">' if video.get("thumbnail_path_relative") else '<div class="thumbnail-placeholder">No Thumbnail</div>'
-        video_list_items += f"""
-        <li class="video-item">
-            <a href="{video['html_filename']}">
-                {thumbnail_html}
-                <h3>{video['title']}</h3>
-            </a>
-        </li>"""
-    
-    list_content_for_f_string = video_list_items if video_list_items else "<p>No videos found. Add content to the 'content' folder.</p>"
-    video_list_html = f'<ul class="video-list">\n{list_content_for_f_string}\n</ul>'
+    videos_by_category = {}
+    for video in videos_data:
+        category = video.get('category', 'Uncategorized')
+        if category not in videos_by_category:
+            videos_by_category[category] = []
+        videos_by_category[category].append(video)
+
+    all_categories_html = ""
+    sorted_category_names = sorted(videos_by_category.keys())
+
+    if not videos_by_category:
+        all_categories_html = "<p>No videos found. Add content to the 'content' folder.</p>"
+    else:
+        for category_name in sorted_category_names:
+            display_category_name = category_name.replace("_", " ").title()
+            
+            # Start category block
+            all_categories_html += '<div class="category-block">\n'
+            # Category header with toggle icon
+            all_categories_html += f'    <div class="category-header">\n        <h2>{display_category_name}</h2>\n        <span class="toggle-icon">&gt;</span>\n    </div>\n'
+            # Category content (collapsible part)
+            all_categories_html += '    <div class="category-content">\n'
+            
+            video_list_items = ""
+            for video in sorted(videos_by_category[category_name], key=lambda x: x['slug']):
+                thumbnail_html = f'<img src="{video["thumbnail_path_relative"]}" alt="{video["title"]} Thumbnail" class="thumbnail">' if video.get("thumbnail_path_relative") else '<div class="thumbnail-placeholder">No Thumbnail</div>'
+                video_list_items += f"""
+                <li class="video-item">
+                    <a href="{video['html_filename']}">
+                        {thumbnail_html}
+                        <h3>{video['title']}</h3>
+                    </a>
+                </li>"""
+            
+            list_content_for_f_string = video_list_items if video_list_items else f"<p>No videos found in {display_category_name}.</p>"
+            all_categories_html += f'        <ul class="video-list">\n{list_content_for_f_string}\n        </ul>\n'
+            
+            all_categories_html += '    </div>\n' # End category-content
+            all_categories_html += '</div>\n' # End category-block
 
     html_content = template_content.replace("{SITE_TITLE}", SITE_TITLE)
-    html_content = html_content.replace("{VIDEO_LIST_HTML}", video_list_html)
+    html_content = html_content.replace("{VIDEO_LIST_HTML}", all_categories_html)
     
     return html_content
 
@@ -129,20 +155,23 @@ def main():
                         with open(metadata_path, 'r', encoding='utf-8') as f:
                             metadata = yaml.safe_load(f)
                         video_data['title'] = metadata.get('title', video_slug.replace("_", " ").title())
-                        video_data['youtube_video_id'] = metadata.get('youtube_video_id') # Changed from youtube_url
-                        video_data['description'] = metadata.get('description', '') 
-                        if not video_data['youtube_video_id']: # Changed from youtube_url
+                        video_data['youtube_video_id'] = metadata.get('youtube_video_id')
+                        video_data['description'] = metadata.get('description', '')
+                        video_data['category'] = metadata.get('category', 'Uncategorized') # Read category here
+                        if not video_data['youtube_video_id']:
                              print(f"  Warning: 'youtube_video_id' not found or empty in metadata.yaml for {video_slug}.")
                     except yaml.YAMLError as e:
                         print(f"  Error parsing metadata.yaml for {video_slug}: {e}")
                         video_data['title'] = video_slug.replace("_", " ").title()
                         video_data['youtube_video_id'] = None
                         video_data['description'] = ''
+                        video_data['category'] = 'Uncategorized' # Default category on error
                 else:
                     print(f"  Warning: metadata.yaml not found for {video_slug}. Using defaults.")
                     video_data['title'] = video_slug.replace("_", " ").title()
                     video_data['youtube_video_id'] = None
                     video_data['description'] = ''
+                    video_data['category'] = 'Uncategorized' # Default category if no metadata file
 
                 video_data['transcript'] = read_file_content(os.path.join(video_content_path, "transcript.txt"), default='').strip()
 

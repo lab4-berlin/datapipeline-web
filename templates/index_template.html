@@ -5,17 +5,156 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{SITE_TITLE}</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Basic styling for collapsible categories */
+        .category-block {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden; /* Ensures border-radius is respected by children */
+        }
+
+        .category-header {
+            background-color: #f0f0f0;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd; /* Separator line */
+        }
+
+        .category-header:hover {
+            background-color: #e0e0e0;
+        }
+
+        .category-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .category-content {
+            padding: 0 15px 15px 15px; /* Add padding to the content area */
+            display: none; /* Hidden by default */
+        }
+
+        .category-content.open {
+            display: block;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.open {
+            transform: rotate(90deg);
+        }
+
+        /* Ensure video list styles are compatible */
+        .video-list {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap */
+            gap: 15px; /* Space between items */
+        }
+
+        .video-item {
+            /* Adjust width for multiple items per row, e.g., 3 items with gap */
+            /* flex: 1 1 calc(33.333% - 10px);  */
+            /* Or for a list-like view, make it full width */
+            flex: 1 1 100%; 
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .video-item a {
+            text-decoration: none;
+            color: #333;
+            display: block; /* Make the whole area clickable */
+        }
+        
+        .video-item h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            color: #0056b3;
+        }
+
+        .video-item:hover {
+            border-color: #007bff;
+        }
+
+        .thumbnail {
+            width: 100%; /* Make thumbnail responsive */
+            max-width: 200px; /* Max width for thumbnail */
+            height: auto;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            object-fit: cover; /* Ensures image covers the area without distortion */
+        }
+        .thumbnail-placeholder {
+            width: 100%;
+            max-width: 200px;
+            height: 112px; /* Approximate 16:9 aspect ratio for placeholder */
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+
+    </style>
 </head>
 <body>
     <header>
         <h1>{SITE_TITLE}</h1>
     </header>
     <main>
-        <h2>Videos</h2>
-        {VIDEO_LIST_HTML}
+        <div id="video-container">
+            {VIDEO_LIST_HTML}
+        </div>
     </main>
     <footer>
-        <p>&copy; {SITE_TITLE}</p>
+        <p>&copy; <script>document.write(new Date().getFullYear())</script> Your Name/Site Name. All rights reserved.</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // The {VIDEO_LIST_HTML} will insert multiple <h2> and <ul>.
+            // We need to wrap them or identify them to make them collapsible.
+            // Assuming your generate_index_html wraps categories in a specific way.
+            // Let's assume it generates something like:
+            // <div class="category-block">
+            //     <div class="category-header"><h2>Category Name</h2> <span class="toggle-icon">+</span></div>
+            //     <div class="category-content"><ul class="video-list">...</ul></div>
+            // </div>
+
+            // The Python script needs to generate HTML compatible with this structure.
+            // For now, let's target the h2 elements and assume the ul immediately following is the content.
+
+            const videoContainer = document.getElementById('video-container');
+            const categoryHeaders = videoContainer.querySelectorAll('.category-header');
+
+            categoryHeaders.forEach(header => {
+                const content = header.nextElementSibling; // Assumes .category-content is the direct sibling
+                if (content && content.classList.contains('category-content')) {
+                    header.addEventListener('click', () => {
+                        content.classList.toggle('open');
+                        const icon = header.querySelector('.toggle-icon');
+                        if (icon) {
+                            icon.classList.toggle('open');
+                            // icon.textContent = content.classList.contains('open') ? '-' : '+'; // If using text for icon
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
