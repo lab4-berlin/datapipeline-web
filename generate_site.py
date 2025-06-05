@@ -5,7 +5,7 @@ import yaml
 
 CONTENT_DIR = "content"
 OUTPUT_DIR = "html"
-SITE_TITLE = "Data PipeLine - Ilya's Video Blog"
+SITE_TITLE = "Data PipeLine"
 TEMPLATES_DIR = "templates"
 
 def create_dir(directory):
