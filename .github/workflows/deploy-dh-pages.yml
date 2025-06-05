@@ -40,6 +40,9 @@ jobs:
       - name: Run site generator
         run: python generate_site.py
 
+      - name: Add CNAME file
+        run: echo 'blog.lab4.berlin' > ./html/CNAME
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
